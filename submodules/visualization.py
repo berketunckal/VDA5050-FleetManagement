@@ -20,7 +20,7 @@ class VisualizationSubscriber:
     def subscribe_to_topics(self, mqtt_client):
         """Visualization mesajlarına abone olur."""
         topic = f"{self.fleetname}/{self.versions}/{self.manufacturer}/+/visualization"
-        mqtt_client.subscribe(topic, qos=1)
+        mqtt_client.subscribe(topic, qos=0)
         self.logger.info(f"Subscribed to visualization topic: {topic}")
 
     def validate_message(self, message):

@@ -1,10 +1,17 @@
 mqtt:
   broker_address: "localhost"
   broker_port: 1883
-  keep_alive: 60
+  keep_alive: 15
   
 fleet_info:
   fleetname: "uagv"
   version: "2.0.0"
   versions: "v2"
   manufacturer: "robots"
+
+postgres:
+  host: "localhost"
+  port: 5432
+  database: "fleet_db"
+  user: "postgres"
+  password: "passwd"

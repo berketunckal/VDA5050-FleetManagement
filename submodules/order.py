@@ -3,12 +3,13 @@ import datetime
 import logging
 
 class OrderPublisher:
-    def __init__(self, fleetname, version, versions, manufacturer, robot_id):
+    def __init__(self, fleetname, version, versions, manufacturer, robot_id, db_conn):
         self.fleetname = fleetname
         self.version = version
         self.manufacturer = manufacturer
         self.robot_id = robot_id
         self.versions = versions
+        self.db_conn = db_conn  
 
         self.logger = logging.getLogger('OrderPublisher')
         logging.basicConfig(level=logging.INFO)
@@ -85,17 +86,51 @@ class OrderPublisher:
         """Zaman damgasını günceller."""
         self.message_template["timestamp"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
+    def _increment_header_id(self):
+        """Header ID'yi artırır."""
+        self.message_template["headerId"] += 1
+
+    def _save_to_database(self):
+        """Veritabanına yeni bir kayıt ekler."""
+        self._increment_header_id()  # Her işlemde headerId artırılıyor
+        self._update_timestamp()  # Zaman damgası güncelleniyor
+
+        try:
+            cursor = self.db_conn.cursor()
+            insert_query = """
+                INSERT INTO orders (header_id, timestamp, version, manufacturer, serial_number, order_id, zone_set_id, order_update_id, nodes, edges)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(insert_query, (
+                self.message_template["headerId"],
+                datetime.datetime.now(),
+                self.version,
+                self.manufacturer,
+                self.robot_id,
+                self.message_template["orderId"],
+                self.message_template["zoneSetId"],
+                self.message_template["orderUpdateId"],
+                json.dumps(self.message_template["nodes"]),
+                json.dumps(self.message_template["edges"]),
+                    ))
+
+            self.db_conn.commit()
+            self.logger.info(f"Data saved to database with headerId {self.message_template['headerId']}.")
+        except Exception as e:
+            self.logger.error(f"Failed to save data to database: {e}")
+            self.db_conn.rollback()
+
     def publish_order(self, mqtt_client):
         """Order mesajını MQTT üzerinden yayınlar."""
         self._update_timestamp()
         message = json.dumps(self.message_template)
         topic = f"{self.fleetname}/{self.versions}/{self.manufacturer}/{self.robot_id}/order"
-        mqtt_client.publish(topic, message, qos=1, retain=False)
+        mqtt_client.publish(topic, message, qos=0, retain=False)
+        self._save_to_database()
         self.logger.info(f"Order message published.")
 
-
     def add_node(self, node_id, sequence_id, node_description, node_position, actions, released=True):
-        """Yeni bir node ekler."""
+        """Yeni bir node ekler ve veritabanına kaydeder."""
         node = {
             "nodeId": node_id,
             "sequenceId": sequence_id,
@@ -107,7 +142,7 @@ class OrderPublisher:
         self.message_template["nodes"].append(node)
 
     def update_node(self, index, **kwargs):
-        """Mevcut bir node'u günceller."""
+        """Mevcut bir node'u günceller ve veritabanına kaydeder."""
         try:
             node = self.message_template["nodes"][index]
             for key, value in kwargs.items():
@@ -117,14 +152,14 @@ class OrderPublisher:
             self.logger.error(f"Node index {index} is out of range.")
 
     def remove_node(self, index):
-        """Belirtilen indexteki node'u siler."""
+        """Belirtilen indexteki node'u siler ve veritabanına kaydeder."""
         try:
             self.message_template["nodes"].pop(index)
         except IndexError:
             self.logger.error(f"Node index {index} is out of range.")
 
     def add_edge(self, edge_id, sequence_id, start_node_id, end_node_id, edge_description, actions, **kwargs):
-        """Yeni bir edge ekler."""
+        """Yeni bir edge ekler ve veritabanına kaydeder."""
         edge = {
             "edgeId": edge_id,
             "sequenceId": sequence_id,
@@ -137,7 +172,7 @@ class OrderPublisher:
         self.message_template["edges"].append(edge)
 
     def update_edge(self, index, **kwargs):
-        """Mevcut bir edge'i günceller."""
+        """Mevcut bir edge'i günceller ve veritabanına kaydeder."""
         try:
             edge = self.message_template["edges"][index]
             for key, value in kwargs.items():
@@ -147,7 +182,7 @@ class OrderPublisher:
             self.logger.error(f"Edge index {index} is out of range.")
 
     def remove_edge(self, index):
-        """Belirtilen indexteki edge'i siler."""
+        """Belirtilen indexteki edge'i siler ve veritabanına kaydeder."""
         try:
             self.message_template["edges"].pop(index)
         except IndexError:
