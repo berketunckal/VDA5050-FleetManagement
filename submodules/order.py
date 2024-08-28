@@ -14,8 +14,9 @@ class OrderPublisher:
         self.logger = logging.getLogger('OrderPublisher')
         logging.basicConfig(level=logging.INFO)
 
+        # Header ID'yi veritabanından yükle
         self.message_template = {
-            "headerId": 1,
+            "headerId": self._load_last_header_id_from_db(),
             "timestamp": None,
             "version": self.version,
             "manufacturer": self.manufacturer,
@@ -81,6 +82,17 @@ class OrderPublisher:
                 }
             ]
         }
+
+    def _load_last_header_id_from_db(self):
+        """Veritabanından en son kullanılan headerId'yi yükler."""
+        try:
+            cursor = self.db_conn.cursor()
+            cursor.execute("SELECT MAX(header_id) FROM orders")
+            last_header_id = cursor.fetchone()[0]
+            return last_header_id if last_header_id is not None else 0
+        except Exception as e:
+            self.logger.error(f"Failed to load last headerId from database: {e}")
+            return 0
 
     def _update_timestamp(self):
         self.message_template["timestamp"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
