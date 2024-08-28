@@ -15,7 +15,6 @@ class InstantActionsPublisher:
         self.logger = logging.getLogger('InstantActionsPublisher')
         logging.basicConfig(level=logging.INFO)
 
-        """Instant actions mesajını oluşturur."""
         self.message_template = {
             "headerId": 0,
             "timestamp": None,
@@ -36,17 +35,14 @@ class InstantActionsPublisher:
         }
 
     def _update_timestamp(self):
-        """Zaman damgasını günceller."""
         self.message_template["timestamp"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
     def _increment_header_id(self):
-        """Header ID'yi artırır."""
         self.message_template["headerId"] += 1
 
     def _save_to_database(self):
-        """Veritabanına yeni bir kayıt ekler."""
-        self._increment_header_id()  # Her işlemde headerId artırılıyor
-        self._update_timestamp()  # Zaman damgası güncelleniyor
+        self._increment_header_id() 
+        self._update_timestamp()  
         
         try:
             cursor = self.db_conn.cursor()
@@ -70,7 +66,6 @@ class InstantActionsPublisher:
             self.db_conn.rollback()
 
     def publish_instant_actions(self, mqtt_client):
-        """Instant actions mesajını MQTT üzerinden yayınlar."""
         self._update_timestamp()
         message = json.dumps(self.message_template)
         topic = f"{self.fleetname}/{self.versions}/{self.manufacturer}/{self.robot_id}/instantActions"
@@ -79,7 +74,6 @@ class InstantActionsPublisher:
         self.logger.info(f"Instant actions message published.")
 
     def add_action(self, action_name, action_id, blocking_type, action_parameters):
-        """Yeni bir action ekler ve veritabanına kaydeder."""
         action = {
             "actionName": action_name,
             "actionId": action_id,
@@ -89,7 +83,6 @@ class InstantActionsPublisher:
         self.message_template["actions"].append(action)
 
     def update_action(self, index, action_name=None, action_id=None, blocking_type=None, action_parameters=None):
-        """Mevcut bir action'ı günceller ve veritabanına yeni bir kayıt ekler."""
         try:
             action = self.message_template["actions"][index]
             if action_name:
@@ -104,7 +97,6 @@ class InstantActionsPublisher:
             self.logger.error(f"Action index {index} is out of range.")
 
     def remove_action(self, index):
-        """Belirtilen indexteki action'ı siler ve veritabanına yeni bir kayıt ekler."""
         try:
             self.message_template["actions"].pop(index)
         except IndexError:

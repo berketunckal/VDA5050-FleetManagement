@@ -9,11 +9,9 @@ def CreateDatabaseAndTables(conn, dbname):
     create_state_table(conn)
 
 def create_database(conn, dbname):
-    """Veritabanı oluşturma fonksiyonu."""
     conn.autocommit = True
     cursor = conn.cursor()
 
-    # Veritabanının mevcut olup olmadığını kontrol et
     cursor.execute(f"SELECT 1 FROM pg_database WHERE datname = '{dbname}';")
     if not cursor.fetchone():
         cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(dbname)))
@@ -22,10 +20,8 @@ def create_database(conn, dbname):
         print(f"Veritabanı '{dbname}' zaten mevcut.")
 
 def create_connection_table(conn):
-    """Connection tablosunu oluşturma fonksiyonu."""
     cursor = conn.cursor()
 
-    # Tablo mevcut mu kontrol et
     cursor.execute("""
         SELECT EXISTS (
             SELECT FROM information_schema.tables 
@@ -33,7 +29,6 @@ def create_connection_table(conn):
         );
     """)
     if not cursor.fetchone()[0]:
-        # Connection tablosunu oluştur
         cursor.execute("""
             CREATE TABLE connection (
                 id SERIAL PRIMARY KEY,
@@ -54,7 +49,6 @@ def create_factsheet_table(conn):
     """Factsheet tablosunu oluşturma fonksiyonu."""
     cursor = conn.cursor()
 
-    # Tablo mevcut mu kontrol et
     cursor.execute("""
         SELECT EXISTS (
             SELECT FROM information_schema.tables 
@@ -62,7 +56,6 @@ def create_factsheet_table(conn):
         );
     """)
     if not cursor.fetchone()[0]:
-        # Factsheet tablosunu oluştur
         cursor.execute("""
             CREATE TABLE factsheet (
                 id SERIAL PRIMARY KEY,
@@ -130,10 +123,8 @@ def create_factsheet_table(conn):
         print("Factsheet tablosu zaten mevcut.")
 
 def create_instant_actions_table(conn):
-    """Instant actions tablosunu oluşturma fonksiyonu."""
     cursor = conn.cursor()
 
-    # Tablo mevcut mu kontrol et
     cursor.execute("""
         SELECT EXISTS (
             SELECT FROM information_schema.tables 
@@ -141,7 +132,6 @@ def create_instant_actions_table(conn):
         );
     """)
     if not cursor.fetchone()[0]:
-        # Instant actions tablosunu oluştur
         cursor.execute("""
             CREATE TABLE instant_actions (
                 id SERIAL PRIMARY KEY,
@@ -159,10 +149,8 @@ def create_instant_actions_table(conn):
         print("Instant actions tablosu zaten mevcut.")
 
 def create_order_table(conn):
-    """Order tablosunu oluşturma fonksiyonu."""
     cursor = conn.cursor()
 
-    # Tablo mevcut mu kontrol et
     cursor.execute("""
         SELECT EXISTS (
             SELECT FROM information_schema.tables 
@@ -170,7 +158,6 @@ def create_order_table(conn):
         );
     """)
     if not cursor.fetchone()[0]:
-        # Order tablosunu oluştur
         cursor.execute("""
             CREATE TABLE orders (
                 id SERIAL PRIMARY KEY,
@@ -192,10 +179,8 @@ def create_order_table(conn):
         print("Order tablosu zaten mevcut.")
 
 def create_state_table(conn):
-    """State tablosunu oluşturma fonksiyonu."""
     cursor = conn.cursor()
 
-    # Tablo mevcut mu kontrol et
     cursor.execute("""
         SELECT EXISTS (
             SELECT FROM information_schema.tables 
@@ -203,7 +188,6 @@ def create_state_table(conn):
         );
     """)
     if not cursor.fetchone()[0]:
-        # State tablosunu oluştur
         cursor.execute("""
             CREATE TABLE state (
                 id SERIAL PRIMARY KEY,

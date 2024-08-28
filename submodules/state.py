@@ -20,13 +20,11 @@ class StateHandler:
             self.state_schema = json.load(schema_file)
 
     def subscribe_to_topics(self, mqtt_client):
-        """State mesajlarına abone olur."""
         topic = f"{self.fleetname}/{self.versions}/+/+/state"
         mqtt_client.subscribe(topic, qos=0)
         self.logger.info(f"Subscribed to state topic: {topic}")
 
     def validate_message(self, message):
-        """Gelen JSON mesajını şemaya göre doğrular."""
         try:
             validate(instance=message, schema=self.state_schema)
             self.logger.info("State message is valid according to the schema.")
@@ -35,7 +33,6 @@ class StateHandler:
             raise
 
     def _save_to_database(self, message):
-        """State mesajını veritabanına kaydeder."""
         try:
             cursor = self.db_conn.cursor()
             insert_query = """
@@ -80,7 +77,6 @@ class StateHandler:
             self.db_conn.rollback()
 
     def process_state_message(self, message):
-        """State mesajını işler ve veritabanına kaydeder."""
         try:
             self.validate_message(message)  
             self._save_to_database(message)

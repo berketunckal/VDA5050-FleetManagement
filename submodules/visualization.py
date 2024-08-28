@@ -18,13 +18,11 @@ class VisualizationSubscriber:
             self.visualization_schema = json.load(schema_file)
 
     def subscribe_to_topics(self, mqtt_client):
-        """Visualization mesajlarına abone olur."""
         topic = f"{self.fleetname}/{self.versions}/{self.manufacturer}/+/visualization"
         mqtt_client.subscribe(topic, qos=0)
         self.logger.info(f"Subscribed to visualization topic: {topic}")
 
     def validate_message(self, message):
-        """Gelen visualization mesajını şemaya göre doğrular."""
         try:
             validate(instance=message, schema=self.visualization_schema)
             self.logger.info("Visualization message is valid according to the schema.")
@@ -33,7 +31,6 @@ class VisualizationSubscriber:
             raise
 
     def process_visualization_message(self, message):
-        """Visualization mesajını işler."""
         agv_position = message.get("agvPosition", {})
         velocity = message.get("velocity", {})
         

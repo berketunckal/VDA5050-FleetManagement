@@ -23,7 +23,6 @@ class FactsheetHandler:
             self.factsheet_schema = json.load(schema_file)
 
     def validate_message(self, message):
-        """Gelen JSON mesajını verilen şemaya göre doğrular."""
         try:
             validate(instance=message, schema=self.factsheet_schema)
             self.logger.info("Factsheet message is valid according to the schema.")
@@ -32,7 +31,6 @@ class FactsheetHandler:
             raise
 
     def process_factsheet_message(self, message):
-        """Factsheet mesajını işler ve veritabanına yazar."""
         try:
             # Gelen veriyi tabloya yazmak için gerekli verileri çıkaralım
             header_id = message.get("headerId", 0)
@@ -212,7 +210,7 @@ class FactsheetHandler:
             )
 
             cursor.execute(insert_query, data_tuple)
-            self.db_conn.commit()  # Değişiklikleri kaydet
+            self.db_conn.commit()  
 
             self.logger.info(
                 f"Factsheet data inserted into database for serial number: {serial_number}"
@@ -220,10 +218,9 @@ class FactsheetHandler:
 
         except Exception as e:
             self.logger.error(f"Failed to insert factsheet data into database: {e}")
-            self.db_conn.rollback()  # Hata durumunda değişiklikleri geri al
+            self.db_conn.rollback()  
 
     def on_message(self, client, userdata, msg):
-        """Gelen MQTT mesajını işleyin ve veritabanına yazın."""
         try:
             message = json.loads(msg.payload.decode())
             self.validate_message(message)
@@ -234,7 +231,6 @@ class FactsheetHandler:
             self.logger.error("Message validation failed.")
 
     def subscribe_to_topics(self, mqtt_client):
-        """MQTT istemcisi ile abone olunacak topic'leri tanımlar."""
         topic = f"{self.fleetname}/{self.versions}/+/+/factsheet"
         mqtt_client.subscribe(topic, qos=0)
         self.logger.info(f"Subscribed to topic: {topic}")
