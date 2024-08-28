@@ -1,7 +1,6 @@
 import json
 import datetime
 import logging
-import psycopg2
 
 class InstantActionsPublisher:
     def __init__(self, fleetname, version, versions, manufacturer, robot_id, db_conn):

@@ -3,7 +3,6 @@ import os
 import logging
 import datetime
 from jsonschema import validate, ValidationError
-import psycopg2
 
 class StateHandler:
     def __init__(self, fleetname, version, versions, db_conn):

@@ -3,7 +3,6 @@ import os
 import jsonschema
 from jsonschema import validate
 import logging
-import psycopg2
 
 class ConnectionHandler:
     def __init__(self, fleetname, version, versions, db_conn):
@@ -28,8 +27,8 @@ class ConnectionHandler:
             raise
 
     def process_connection_message(self, message):
-        connection_state = message.get("connectionState", "UNKNOWN")
-        agv_id = message.get("serialNumber", "UNKNOWN")
+        connection_state = message.get("connectionState", "CONNECTIONBROKEN")
+        agv_id = message.get("serialNumber", "CONNECTIONBROKEN")
         self.logger.info(f"AGV {agv_id} is now {connection_state}")
         self.write_to_database(message)
 

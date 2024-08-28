@@ -3,8 +3,6 @@ import os
 import jsonschema
 from jsonschema import validate
 import logging
-import psycopg2
-
 
 class FactsheetHandler:
     def __init__(self, fleetname, version, versions, db_conn):
