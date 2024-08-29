@@ -145,9 +145,6 @@ class FleetManager:
     def handle_factsheet_message(self, message):
         self.factsheet_handler.process_factsheet_message(message)
 
-    def handle_instant_actions_message(self, message):
-        self.logger.info(f"Processing instant actions: {message}")
-
     def handle_state_message(self, message):
         self.state_handler.process_state_message(message)
         battery_status = self.state_handler.get_battery_status(message)
@@ -195,8 +192,6 @@ class FleetManager:
                 self.handle_connection_message(message)
             elif "factsheet" in msg.topic:
                 self.handle_factsheet_message(message)
-            elif "instantActions" in msg.topic:
-                self.handle_instant_actions_message(message)
             elif "state" in msg.topic:
                 self.handle_state_message(message)
             elif "visualization" in msg.topic:

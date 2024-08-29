@@ -60,3 +60,6 @@ class ConnectionHandler:
             
     def get_connection_status(self,message):
         return message.get("connectionState")
+    
+    def get_agv_id(self,message):
+        return message.get("serialNumber")
