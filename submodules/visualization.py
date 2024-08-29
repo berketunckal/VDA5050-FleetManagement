@@ -11,7 +11,7 @@ class VisualizationSubscriber:
         self.manufacturer = manufacturer
 
         self.logger = logging.getLogger('VisualizationSubscriber')
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.WARN)
 
         schema_path = os.path.join(os.path.dirname(__file__), 'schemas', 'visualization.schema')
         with open(schema_path, 'r') as schema_file:
@@ -25,12 +25,12 @@ class VisualizationSubscriber:
     def validate_message(self, message):
         try:
             validate(instance=message, schema=self.visualization_schema)
-            self.logger.info("Visualization message is valid according to the schema.")
         except ValidationError as e:
             self.logger.error(f"Schema validation failed: {e.message}")
             raise
 
     def process_visualization_message(self, message):
+        self.validate_message(message)
         agv_position = message.get("agvPosition", {})
         velocity = message.get("velocity", {})
         

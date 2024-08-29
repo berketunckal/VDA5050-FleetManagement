@@ -12,7 +12,7 @@ class StateHandler:
         self.db_conn = db_conn 
 
         self.logger = logging.getLogger('StateHandler')
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.WARN)
 
         schema_path = os.path.join(os.path.dirname(__file__), 'schemas', 'state.schema')
         with open(schema_path, 'r', encoding="utf-8") as schema_file:
@@ -26,7 +26,6 @@ class StateHandler:
     def validate_message(self, message):
         try:
             validate(instance=message, schema=self.state_schema)
-            self.logger.info("State message is valid according to the schema.")
         except ValidationError as e:
             self.logger.error(f"State schema validation failed: {e.message}")
             raise
@@ -70,7 +69,6 @@ class StateHandler:
                 json.dumps(message.get("safetyState"))
             ))
             self.db_conn.commit()
-            self.logger.info(f"State data saved to database with headerId {message.get('headerId')}.")
         except Exception as e:
             self.logger.error(f"Failed to save state data to database: {e}")
             self.db_conn.rollback()
@@ -81,3 +79,85 @@ class StateHandler:
             self._save_to_database(message)
         except ValidationError:
             self.logger.error("State message validation failed. Skipping database save.")
+            
+            
+    def get_battery_status(self, state_message):
+        battery_state = state_message.get("batteryState", {})
+        return {
+            "batteryCharge": battery_state.get("batteryCharge", 0),
+            "batteryVoltage": battery_state.get("batteryVoltage", 0.0),
+            "batteryHealth": battery_state.get("batteryHealth", 0),
+            "charging": battery_state.get("charging", False),
+            "reach": battery_state.get("reach", 0)
+        }
+    
+    def get_robot_id(self, state_message):
+        return state_message.get("serialNumber", "")
+    
+    def get_order_id(self, state_message):
+        return state_message.get("orderId", "")
+    
+    def get_order_update_id(self, state_message):
+        return state_message.get("orderUpdateId", "")
+    
+    def get_zone_set_id(self, state_message):
+        return state_message.get("zoneSetId", "")
+    
+    def get_last_node_id(self, state_message):
+        return state_message.get("lastNodeId", "")
+
+    def get_last_node_sequence_id(self, state_message):
+        return state_message.get("lastNodeSequenceId", 0)
+
+    def get_driving_status(self, state_message):
+        return state_message.get("driving", False)
+
+    def get_paused_status(self, state_message):
+        return state_message.get("paused", False)
+
+    def get_new_base_request(self, state_message):
+        return state_message.get("newBaseRequest", False)
+    
+    def get_distance_since_last_node(self, state_message):
+        return state_message.get("distanceSinceLastNode", 0.0)
+    
+    def get_operating_mode(self, state_message):
+        return state_message.get("operatingMode", "UNKNOWN")
+    
+    def get_node_states(self, state_message):
+        return state_message.get("nodeStates", [])
+    
+    def get_edge_states(self, state_message):
+        return state_message.get("edgeStates", [])
+    
+    def get_agv_position(self, state_message):
+        return state_message.get("agvPosition", {})
+    
+    def get_velocity(self, state_message):
+        return state_message.get("velocity", {})
+
+    def get_loads(self, state_message):
+        return state_message.get("loads", [])
+    
+    def get_action_states(self, state_message):
+        return state_message.get("actionStates", [])
+    
+    def get_errors(self, state_message):
+        return state_message.get("errors", [])
+    
+    def get_information(self, state_message):
+        return state_message.get("information", [])
+    
+    def get_emergency_status(self, state_message):
+        safety_state = state_message.get("safetyState", {})
+        return safety_state.get("eStop", "NONE")
+    
+    def get_field_violation(self, state_message):
+        safety_state = state_message.get("safetyState", {})
+        return safety_state.get("fieldViolation", "false")
+
+
+
+
+
+

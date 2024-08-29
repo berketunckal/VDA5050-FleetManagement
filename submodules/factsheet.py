@@ -9,7 +9,7 @@ class FactsheetHandler:
         self.fleetname = fleetname
         self.version = version
         self.versions = versions
-        self.db_conn = db_conn  # Veritabanı bağlantısını ekliyoruz
+        self.db_conn = db_conn  
 
         self.logger = logging.getLogger("FactsheetHandler")
         logging.basicConfig(level=logging.INFO)
@@ -23,14 +23,13 @@ class FactsheetHandler:
     def validate_message(self, message):
         try:
             validate(instance=message, schema=self.factsheet_schema)
-            self.logger.info("Factsheet message is valid according to the schema.")
         except jsonschema.exceptions.ValidationError as e:
             self.logger.error(f"Factsheet schema validation failed: {e.message}")
             raise
 
     def process_factsheet_message(self, message):
+        self.validate_message(message)
         try:
-            # Gelen veriyi tabloya yazmak için gerekli verileri çıkaralım
             header_id = message.get("headerId", 0)
             timestamp = message.get("timestamp")
             version = message.get("version")
@@ -53,7 +52,6 @@ class FactsheetHandler:
             width = message["physicalParameters"].get("width", 0.0)
             length = message["physicalParameters"].get("length", 0.0)
 
-            # ProtocolLimits
             msg_len = message["protocolLimits"]["maxStringLens"].get("msgLen", 0)
             topic_serial_len = message["protocolLimits"]["maxStringLens"].get(
                 "topicSerialLen", 0
@@ -138,7 +136,6 @@ class FactsheetHandler:
             loadSets = loadSpecification.get("loadSets", [])
 
             
-            # Veritabanı bağlantısı ve cursor oluşturma
             cursor = self.db_conn.cursor()
             insert_query = """
                 INSERT INTO factsheet (
@@ -217,18 +214,182 @@ class FactsheetHandler:
         except Exception as e:
             self.logger.error(f"Failed to insert factsheet data into database: {e}")
             self.db_conn.rollback()  
-
-    def on_message(self, client, userdata, msg):
-        try:
-            message = json.loads(msg.payload.decode())
-            self.validate_message(message)
-            self.process_factsheet_message(message)
-        except json.JSONDecodeError as e:
-            self.logger.error(f"Failed to decode JSON message: {e}")
-        except jsonschema.exceptions.ValidationError:
-            self.logger.error("Message validation failed.")
-
+            
     def subscribe_to_topics(self, mqtt_client):
         topic = f"{self.fleetname}/{self.versions}/+/+/factsheet"
         mqtt_client.subscribe(topic, qos=0)
         self.logger.info(f"Subscribed to topic: {topic}")
+        
+        
+    def get_robot_id(self, message):
+        return message.get("serialNumber", "UNKNOWN")
+    
+    def get_header_id(self, message):
+        return message.get("headerId", 0)
+    
+    def get_timestamp(self, message):
+        return message.get("timestamp")
+    
+    def get_version(self, message):
+        return message.get("version", "UNKNOWN")
+    
+    def get_manufacturer(self, message):
+        return message.get("manufacturer", "UNKNOWN")
+    
+    def get_series_name(self, message):
+        return message["typeSpecification"].get("seriesName", "")
+    
+    def get_agv_kinematic(self, message):
+        return message["typeSpecification"].get("agvKinematic", "")
+    
+    def get_agv_class(self, message):
+        return message["typeSpecification"].get("agvClass", "")
+    
+    def get_max_load_mass(self, message):
+        return message["typeSpecification"].get("maxLoadMass", 0)
+    
+    def get_localization_types(self, message):
+        return message["typeSpecification"].get("localizationTypes", [])
+    
+    def get_navigation_types(self, message):
+        return message["typeSpecification"].get("navigationTypes", [])
+    
+    def get_speed_min(self, message):
+        return message["physicalParameters"].get("speedMin", 0.0)
+    
+    def get_speed_max(self, message):
+        return message["physicalParameters"].get("speedMax", 0.0)
+    
+    def get_acceleration_max(self, message):
+        return message["physicalParameters"].get("accelerationMax", 0.0)
+    
+    def get_deceleration_max(self, message):
+        return message["physicalParameters"].get("decelerationMax", 0.0)
+    
+    def get_height_min(self, message):
+        return message["physicalParameters"].get("heightMin", 0.0)
+    
+    def get_height_max(self, message):
+        return message["physicalParameters"].get("heightMax", 0.0)
+    
+    def get_width(self, message):
+        return message["physicalParameters"].get("width", 0.0)
+    
+    def get_length(self, message):
+        return message["physicalParameters"].get("length", 0.0)
+    
+    def get_msg_len(self, message):
+        return message["protocolLimits"]["maxStringLens"].get("msgLen", 0)
+    
+    def get_topic_serial_len(self, message):
+        return message["protocolLimits"]["maxStringLens"].get("topicSerialLen", 0)
+    
+    def get_topic_element_len(self, message):
+        return message["protocolLimits"]["maxStringLens"].get("topicElemLen", 0)
+    
+    def get_id_len(self, message):
+        return message["protocolLimits"]["maxStringLens"].get("idLen", 0)
+    
+    def get_id_numerical_only(self, message):
+        return message["protocolLimits"]["maxStringLens"].get("idNumericalOnly", 0)
+    
+    def get_enum_len(self, message):
+        return message["protocolLimits"]["maxStringLens"].get("enumLen", 0)
+    
+    def get_load_id_len(self, message):
+        return message["protocolLimits"]["maxStringLens"].get("loadIdLen", 0)
+    
+    def get_order_nodes_max(self, message):
+        return message["protocolLimits"]["maxArrayLens"].get("order.nodes", 0)
+    
+    def get_node_actions_max(self, message):
+        return message["protocolLimits"]["maxArrayLens"].get("node.actions", 0)
+    
+    def get_order_edges_max(self, message):
+        return message["protocolLimits"]["maxArrayLens"].get("order.edges", 0)
+    
+    def get_edge_actions_max(self, message):
+        return message["protocolLimits"]["maxArrayLens"].get("edge.actions", 0)
+    
+    def get_actions_parameters_max(self, message):
+        return message["protocolLimits"]["maxArrayLens"].get("actions.actionsParameters", 0)
+    
+    def get_instant_actions_max(self, message):
+        return message["protocolLimits"]["maxArrayLens"].get("instantActions", 0)
+    
+    def get_trajectory_knot_vector_max(self, message):
+        return message["protocolLimits"]["maxArrayLens"].get("trajectory.knotVector", 0)
+    
+    def get_trajectory_control_points_max(self, message):
+        return message["protocolLimits"]["maxArrayLens"].get("trajectory.controlPoints", 0)
+    
+    def get_state_node_states_max(self, message):
+        return message["protocolLimits"]["maxArrayLens"].get("state.nodeStates", 0)
+    
+    def get_state_edge_states_max(self, message):
+        return message["protocolLimits"]["maxArrayLens"].get("state.edgeStates", 0)
+    
+    def get_state_loads_max(self, message):
+        return message["protocolLimits"]["maxArrayLens"].get("state.loads", 0)
+    
+    def get_state_action_states_max(self, message):
+        return message["protocolLimits"]["maxArrayLens"].get("state.actionStates", 0)
+    
+    def get_state_errors_max(self, message):
+        return message["protocolLimits"]["maxArrayLens"].get("state.errors", 0)
+    
+    def get_state_information_max(self, message):
+        return message["protocolLimits"]["maxArrayLens"].get("state.information", 0)
+    
+    def get_error_references_max(self, message):
+        return message["protocolLimits"]["maxArrayLens"].get("error.errorReferences", 0)
+    
+    def get_information_references_max(self, message):
+        return message["protocolLimits"]["maxArrayLens"].get("information.infoReferences", 0)
+    
+    def get_min_order_interval(self, message):
+        return message["protocolLimits"]["timing"].get("minOrderInterval", 0.0)
+    
+    def get_min_state_interval(self, message):
+        return message["protocolLimits"]["timing"].get("minStateInterval", 0.0)
+    
+    def get_default_state_interval(self, message):
+        return message["protocolLimits"]["timing"].get("defaultStateInterval", 0.0)
+    
+    def get_visualization_interval(self, message):
+        return message["protocolLimits"]["timing"].get("visualizationInterval", 0.0)
+    
+    def get_protocol_features(self, message):
+        return message.get("protocolFeatures", {})
+    
+    def get_optional_parameters(self, message):
+        protocol_features = self.get_protocol_features(message)
+        return protocol_features.get("optionalParameters", [])
+    
+    def get_agv_actions(self, message):
+        protocol_features = self.get_protocol_features(message)
+        return protocol_features.get("agvActions", [])
+    
+    def get_agv_geometry(self, message):
+        return message.get("agvGeometry", {})
+    
+    def get_wheel_definitions(self, message):
+        agv_geometry = self.get_agv_geometry(message)
+        return agv_geometry.get("wheelDefinitions", [])
+    
+    def get_envelopes_2d(self, message):
+        agv_geometry = self.get_agv_geometry(message)
+        return agv_geometry.get("envelopes2d", [])
+    
+    def get_load_specification(self, message):
+        return message.get("loadSpecification", {})
+    
+    def get_load_positions(self, message):
+        load_specification = self.get_load_specification(message)
+        return load_specification.get("loadPositions", None)
+    
+    def get_load_sets(self, message):
+        load_specification = self.get_load_specification(message)
+        return load_specification.get("loadSets", [])
+    
+    

@@ -16,8 +16,7 @@ def create_database(conn, dbname):
     if not cursor.fetchone():
         cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(dbname)))
         print(f"Veritabanı '{dbname}' başarıyla oluşturuldu.")
-    else:
-        print(f"Veritabanı '{dbname}' zaten mevcut.")
+
 
 def create_connection_table(conn):
     cursor = conn.cursor()
@@ -41,9 +40,8 @@ def create_connection_table(conn):
             );
         """)
         conn.commit()
-        print("Connection tablosu başarıyla oluşturuldu.")
-    else:
-        print("Connection tablosu zaten mevcut.")
+        print("Connection table created successfully..")
+
 
 def create_factsheet_table(conn):
     """Factsheet tablosunu oluşturma fonksiyonu."""
@@ -118,9 +116,7 @@ def create_factsheet_table(conn):
             );
         """)
         conn.commit()
-        print("Factsheet tablosu başarıyla oluşturuldu.")
-    else:
-        print("Factsheet tablosu zaten mevcut.")
+        print("Factsheet table created successfully..")
 
 def create_instant_actions_table(conn):
     cursor = conn.cursor()
@@ -144,9 +140,7 @@ def create_instant_actions_table(conn):
             );
         """)
         conn.commit()
-        print("Instant actions tablosu başarıyla oluşturuldu.")
-    else:
-        print("Instant actions tablosu zaten mevcut.")
+        print("Instant actions table created successfully..")
 
 def create_order_table(conn):
     cursor = conn.cursor()
@@ -174,9 +168,7 @@ def create_order_table(conn):
             );
         """)
         conn.commit()
-        print("Order tablosu başarıyla oluşturuldu.")
-    else:
-        print("Order tablosu zaten mevcut.")
+        print("Order table created successfully..")
 
 def create_state_table(conn):
     cursor = conn.cursor()
@@ -219,6 +211,5 @@ def create_state_table(conn):
             );
         """)
         conn.commit()
-        print("State tablosu başarıyla oluşturuldu.")
-    else:
-        print("State tablosu zaten mevcut.")
+        print("State table created successfully.")
+

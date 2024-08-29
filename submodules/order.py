@@ -12,7 +12,7 @@ class OrderPublisher:
         self.db_conn = db_conn  
 
         self.logger = logging.getLogger('OrderPublisher')
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.WARN)
 
         # Header ID'yi veritabanından yükle
         self.message_template = {
@@ -124,7 +124,6 @@ class OrderPublisher:
                     ))
 
             self.db_conn.commit()
-            self.logger.info(f"Data saved to database with headerId {self.message_template['headerId']}.")
         except Exception as e:
             self.logger.error(f"Failed to save data to database: {e}")
             self.db_conn.rollback()

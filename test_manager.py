@@ -138,6 +138,53 @@ class FleetManager:
         )
 
         self.order_publisher.publish_order(self.mqtt_client)
+        
+    def handle_connection_message(self, message):
+        self.connection_handler.process_connection_message(message)
+
+    def handle_factsheet_message(self, message):
+        self.factsheet_handler.process_factsheet_message(message)
+
+    def handle_instant_actions_message(self, message):
+        self.logger.info(f"Processing instant actions: {message}")
+
+    def handle_state_message(self, message):
+        self.state_handler.process_state_message(message)
+        battery_status = self.state_handler.get_battery_status(message)
+        print("Battery Status:", battery_status)
+
+        agv_position = self.state_handler.get_agv_position(message)
+        print("AGV Position:", agv_position)
+
+        emergency_status = self.state_handler.get_emergency_status(message)
+        print("Emergency Status:", emergency_status)
+        
+        velocity = self.state_handler.get_velocity(message)
+        print("Velocity:", velocity)
+        
+        action_states = self.state_handler.get_action_states(message)
+        print("Action States:", action_states)
+        
+        operating_mode = self.state_handler.get_operating_mode(message)
+        print("Operating Mode:", operating_mode)
+        
+        driving_status = self.state_handler.get_driving_status(message)
+        print("Driving Status:", driving_status)
+        
+        paused_status = self.state_handler.get_paused_status(message)
+        print("Paused Status:", paused_status)
+        
+        last_node_id = self.state_handler.get_last_node_id(message)
+        print("Last Node ID:", last_node_id)
+        
+        last_node_sequence_id = self.state_handler.get_last_node_sequence_id(message)
+        print("Last Node Sequence ID:", last_node_sequence_id)
+
+        robot_id = self.state_handler.get_robot_id(message)
+        print("Robot ID:", robot_id)
+
+    def handle_visualization_message(self, message):
+        self.visualization_subscriber.process_visualization_message(message)
 
     def on_message(self, client, userdata, msg):
         payload = msg.payload.decode()
@@ -145,23 +192,20 @@ class FleetManager:
             message = json.loads(payload)
 
             if "connection" in msg.topic:
-                self.connection_handler.validate_message(message)
-                self.connection_handler.process_connection_message(message)
+                self.handle_connection_message(message)
             elif "factsheet" in msg.topic:
-                self.factsheet_handler.validate_message(message)
-                self.factsheet_handler.process_factsheet_message(message)
+                self.handle_factsheet_message(message)
             elif "instantActions" in msg.topic:
-                self.logger.info(f"Processing instant actions: {message}")
+                self.handle_instant_actions_message(message)
             elif "state" in msg.topic:
-                self.state_handler.validate_message(message)
-                self.state_handler.process_state_message(message)
+                self.handle_state_message(message)
             elif "visualization" in msg.topic:
-                self.visualization_subscriber.validate_message(message)
-                self.visualization_subscriber.process_visualization_message(message)
+                self.handle_visualization_message(message)
         except json.JSONDecodeError as e:
             self.logger.error(f"Failed to decode JSON message: {e}")
         except jsonschema.exceptions.ValidationError:
             pass
+        
 
 if __name__ == '__main__':
     fleet_manager = FleetManager()
