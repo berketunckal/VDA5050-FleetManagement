@@ -3,11 +3,10 @@ import datetime
 import logging
 
 class OrderPublisher:
-    def __init__(self, fleetname, version, versions, manufacturer, robot_id, db_conn):
+    def __init__(self, fleetname, version, versions, manufacturer, db_conn):
         self.fleetname = fleetname
         self.version = version
         self.manufacturer = manufacturer
-        self.robot_id = robot_id
         self.versions = versions
         self.db_conn = db_conn  
 
@@ -20,7 +19,7 @@ class OrderPublisher:
             "timestamp": None,
             "version": self.version,
             "manufacturer": self.manufacturer,
-            "serialNumber": self.robot_id,
+            "serialNumber": None,
             "orderId": "order_001",
             "orderUpdateId": 0,
             "zoneSetId": "zone_set_001",
@@ -128,10 +127,12 @@ class OrderPublisher:
             self.logger.error(f"Failed to save data to database: {e}")
             self.db_conn.rollback()
 
-    def publish_order(self, mqtt_client):
+    def publish_order(self, mqtt_client, robot_id):
         self._update_timestamp()
+        self.robot_id = robot_id
+        self.message_template["serialNumber"] = robot_id        
         message = json.dumps(self.message_template)
-        topic = f"{self.fleetname}/{self.versions}/{self.manufacturer}/{self.robot_id}/order"
+        topic = f"{self.fleetname}/{self.versions}/{self.manufacturer}/{robot_id}/order"
         mqtt_client.publish(topic, message, qos=0, retain=False)
         self._save_to_database()
         self.logger.info(f"Order message published.")

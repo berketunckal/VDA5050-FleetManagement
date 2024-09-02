@@ -52,8 +52,8 @@ class FleetManager:
 
         self.connection_handler = ConnectionHandler(self.fleetname, self.version, self.versions, self.conn)
         self.factsheet_handler = FactsheetHandler(self.fleetname, self.version , self.versions,self.conn)
-        self.instant_actions_publisher = InstantActionsPublisher(self.fleetname, self.version, self.versions, self.manufacturer, "001", self.conn)
-        self.order_publisher = OrderPublisher(self.fleetname, self.version, self.versions, self.manufacturer, "001",self.conn)
+        self.instant_actions_publisher = InstantActionsPublisher(self.fleetname, self.version, self.versions, self.manufacturer, self.conn)
+        self.order_publisher = OrderPublisher(self.fleetname, self.version, self.versions, self.manufacturer,self.conn)
         self.state_handler = StateHandler(self.fleetname, self.version, self.versions,self.conn)
         self.visualization_subscriber = VisualizationSubscriber(self.fleetname, self.version, self.versions, self.manufacturer)
         
@@ -93,7 +93,7 @@ class FleetManager:
             ]
         )
 
-        self.instant_actions_publisher.publish_instant_actions(self.mqtt_client)
+        self.instant_actions_publisher.publish_instant_actions(self.mqtt_client, "001")
         
         
     def publish_order(self):
@@ -137,7 +137,7 @@ class FleetManager:
             length=10.0
         )
 
-        self.order_publisher.publish_order(self.mqtt_client)
+        self.order_publisher.publish_order(self.mqtt_client,"001")
         
     def handle_connection_message(self, message):
         self.connection_handler.process_connection_message(message)

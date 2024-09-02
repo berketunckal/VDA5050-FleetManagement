@@ -3,11 +3,10 @@ import datetime
 import logging
 
 class InstantActionsPublisher:
-    def __init__(self, fleetname, version, versions, manufacturer, robot_id, db_conn):
+    def __init__(self, fleetname, version, versions, manufacturer, db_conn):
         self.fleetname = fleetname
         self.version = version
         self.manufacturer = manufacturer
-        self.robot_id = robot_id
         self.versions = versions
         self.db_conn = db_conn  
         
@@ -20,7 +19,7 @@ class InstantActionsPublisher:
             "timestamp": None,
             "version": self.version,
             "manufacturer": self.manufacturer,
-            "serialNumber": self.robot_id,
+            "serialNumber": None,
             "actions": [
                 {
                     "actionName": "PICK",
@@ -75,7 +74,9 @@ class InstantActionsPublisher:
             self.logger.error(f"Failed to save data to database: {e}")
             self.db_conn.rollback()
 
-    def publish_instant_actions(self, mqtt_client):
+    def publish_instant_actions(self, mqtt_client , robot_id):
+        self.message_template["serialNumber"] = robot_id
+        self.robot_id = robot_id
         self._update_timestamp()
         message = json.dumps(self.message_template)
         topic = f"{self.fleetname}/{self.versions}/{self.manufacturer}/{self.robot_id}/instantActions"
